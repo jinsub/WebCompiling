@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>   
+    <!-- '15.06.16 -->
+    <link rel="stylesheet" href="./jQueryUI/jquery-ui.min.css">
+    <script src="./jQueryUI/jquery-ui.min.js"></script>
+    <!-- fixto-->
+    <script>window.jQuery || document.write('<script src="./fixTo/jquery.js"><\/script>')</script>
+    <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-5002e1366084f15f"></script>
+    <script src="./fixTo/fixto.min.js"></script>
+    <style>
+        #header {
+            background-color:#5cb85c;
+            color:white;
+            text-align:center;
+            height:70px;
+            padding:5px;
+        }
+        #nav {
+            line-height:30px;
+            background-color:white;
+            width:150px;
+            height:420px;
+            float:left;
+            padding:5px;
+        }
+        #section {
+            width:350px;
+            background-color:white;
+            height:auto;
+            resize:vertical;
+            float:left;
+            padding:10px;
+        }
+        #footer {
+            background-color:#5cb85c;
+            clear:both;
+            text-align:center;
+            padding:30px;
+        }
+        .modal-header, h4, .close {
+            background-color: #5cb85c;
+            color:white !important;
+            text-align: center;
+            font-size: 30px;
+        }
+        .modal-footer {
+            background-color: #f9f9f9;
+        }
+        .btn-success {
+            width: 100%;
+            padding: 10px;
+        }
+        #sortable { list-style-type: none; margin: 100; padding: 100; width: 60%; }
+        #sortable li { margin: 5px 5px 5px 5px; padding: 5px; font-size: 1.2em; height: 2.5em; width: 40em; }
+        #sortable .ui-selecting { opacity: 0.4; border: 2px solid black;}
+        #sortable .ui-selected { opacity: 1; border: 2px solid black; }
+        
+        #sortable .ui-state-dec {
+			background: #adadad url("./images/ui-state-assign.png") 50% 50% repeat-x;
+			font-weight: normal;
+			color: #333333;
+		}
+  		#sortable .ui-state-ass {
+			background: #adadad url("./images/ui-state-assign.png") 50% 50% repeat-x;
+			font-weight: normal;
+			color: #333333;
+		}
+  		#sortable .ui-state-opr {
+			background: #adadad url("./images/ui-state-opr.png") 50% 50% repeat-x;
+			font-weight: normal;
+			color: #333333;
+		}
+  		#sortable .ui-state-loop {
+			background: #adadad url("./images/ui-state-loop.png") 50% 50% repeat-x;
+			font-weight: normal;
+			color: #333333;
+		}
+  		#sortable .ui-state-if {
+			background: #adadad url("./images/ui-state-if1.png") 50% 50% repeat-x;
+			color: #FFFFFF;
+			        
+		}
+		#sortable .ui-state-in {
+			background: #adadad url("./images/ui-state-out.png") 50% 50% repeat-x;
+			font-weight: normal;
+			color: #333333;
+		}
+  		#sortable .ui-state-out {
+			background: #adadad url("./images/ui-state-out.png") 50% 50% repeat-x;
+			font-weight: normal;
+			color: #333333;
+		}
+		#sortable select { color: black; }
+        #sortable input { color: black; }
+    </style>
+    <!-- functions -->
+  <script>
+  var idArr = [];
+  var tokStr="";
+  $(function() {
+    var decCount = 0,assCount = 0,oprCount=0,loopCount=0,ifCount=0,inputCount=0,outputCount=0;
+
+    ///added function
+    function SelectSelectableElement (selectableContainer, elementsToSelect)
+    {
+      // add unselecting class to all elements in the styleboard canvas except the ones to select
+      $(".ui-selected", selectableContainer).not(elementsToSelect).removeClass("ui-selected").addClass("ui-unselecting");
+
+      // add ui-selecting class to the elements to select
+      $(elementsToSelect).not(".ui-selecting").addClass("ui-selected");
+      $(elementsToSelect).not(".ui-selected").addClass("ui-selecting");
+
+    }
+    ///added function end
+
+    $( "#sortable").sortable({
+      	placeholder: "ui-state-highlight",
+    });
+
+     $("#sortable").selectable({
+/*       	 stop: function() {
+	        var result = $( "#select-result" ).empty();
+	        $( ".ui-selected", this ).each(function() {
+	          var index = this.id;
+	          result.append( " #" + index);
+	        });
+      	 } */
+    });
+     
+    $("#compile_btn").on("click",function(){
+    	var str;
+    	var len;
+    	var id_num;
+    	var id;
+    	var margine;
+    	$("#sortable li").each(function(){
+    		margine = parseInt($(this).css("marginLeft").replace(/[^-\d\.]/g, ''));
+	    	tokStr+=(","+margine);
+    		str = $(this).attr('id');
+    		len = str.length;
+          	idArr.push(str);
+          	switch(str.charAt(2)){
+          	case 'd':
+          		tokStr+=",dec";
+        	 	id_num = str.substring(5,len);
+        	 	
+        	 	id = "s_dec"+id_num;
+            	tokStr+=","+$("#"+id).val();
+            	
+            	id = "inp_dec"+id_num;
+            	tokStr+=","+$("#"+id).val();
+            	
+            	id = "inp_size_dec"+id_num;
+                tokStr+=","+$("#"+id).val();
+                break;
+          	case 'o':
+          		if(str.charAt(3)=='p'){
+          			tokStr+=",opr";
+          			id_num = str.substring(5,len);
+          		
+          			id = "inp_dest_opr"+id_num;
+                	tokStr+=","+$("#"+id).val();
+                
+	                id = "inp_left_opr"+id_num;
+	                tokStr+=","+$("#"+id).val();
+	                
+	                id = "s_opr"+id_num;
+	                tokStr+=","+$("#"+id).val();
+	                
+	                id = "inp_right_opr"+id_num;
+	                tokStr+=","+$("#"+id).val();
+          		} else {
+          			tokStr+=",output";
+          			id_num = str.substring(8,len);
+          			
+          			id = "inp_output"+id_num;
+                	tokStr+=","+$("#"+id).val();
+          		}
+        	  	break;
+          	case 'a':
+          		tokStr+=",ass";
+          		id_num = str.substring(5,len);
+          		
+          		id = "inp_left_ass"+id_num;
+                tokStr+=","+$("#"+id).val();
+                
+                id = "inp_right_ass"+id_num;
+                tokStr+=","+$("#"+id).val();
+                break;
+          	case 'l':
+          		tokStr+=",loop";
+          		id_num = str.substring(6,len);
+          		
+          		id = "inp_loop"+id_num;
+               	tokStr+=","+$("#"+id).val();
+               	break;
+          	case 'i':
+          		if(str.charAt(3)=='f'){
+          			tokStr+=",if";
+          			id_num = str.substring(4,len);
+          		
+          			id = "inp_if"+id_num;
+                	tokStr+=","+$("#"+id).val();
+          		} else {
+          			tokStr+=",input";
+          			id_num = str.substring(7,len);
+          			
+          			id = "s_input"+id_num;
+                	tokStr+=","+$("#"+id).val(); 
+                	
+                	id = "inp_input"+id_num;
+                	tokStr+=","+$("#"+id).val(); 
+          		}
+         		break;
+          	}
+      	});
+    	//jQuery.ajaxSettings.traditional = true;
+    	var request = $.ajax({
+    		url: "compile",
+    		type: "get",
+    		data: {"id" : tokStr+",$"},
+    		async: true
+    	});
+    	request.done(function(data){
+    		$("#compileModal").modal('toggle');
+    		$("#result_body").html("");
+    		if(data){
+    			$("#result_body").append(data);
+    		} else {
+    			$("#result_body").append("compile error occur");
+    		}
+    		tokStr="";
+    		$("#resultModal").modal('toggle');
+        	
+    	});
+    	request.error(function(data){
+			alert("Error:" + data);
+    	});
+    });
+
+    $( "#clear").bind("click",function(){
+        $("#sortable li").remove();
+     });
+    
+    $("body").bind('keydown',function(e){
+      if ((e.which==8 || e.which == 46)&&e.target.id.substr(0,3)!="inp"){
+   	  	$( ".ui-selected", this ).each(function() {
+          $(this).remove();
+       	});
+        e.preventDefault();
+      }
+      if (e.which==39&&e.target.id.substr(0,3)!="inp"){
+    	  $( ".ui-selected", this ).each(function() {
+    		  var pl = parseInt($(this).css("marginLeft").replace(/[^-\d\.]/g, ''));
+    		  if (pl==105) return true;
+    		  pl=pl+20;
+	    	  $(this).css("marginLeft",pl);
+    	  });
+    	  e.preventDefault();
+      }
+      if (e.which==37&&e.target.id.substr(0,3)!="inp"){
+    	  $( ".ui-selected", this ).each(function() {
+    		  var pl = parseInt($(this).css("marginLeft").replace(/[^-\d\.]/g, ''));
+    		  if (pl==5) return true;
+    		  pl=pl-20;
+	    	  $(this).css("marginLeft",pl);
+    	  });
+    	  e.preventDefault();
+      }
+    });
+    
+    
+
+    $( "#addDec").bind("click",function(){  //addbtn eventlistener
+      $( "#sortable").append('<li id="i_dec' + decCount + '" class="ui-state-dec">Declaration'+ decCount +'  <select id="s_dec'+ decCount+'"><option value="char">char</option><option value="int">int</option><option value="float">float</option></select> <input maxlength="10" size="10" id="inp_dec'+decCount+'"><input title="If you want array, Check here" type="checkbox" id="chk_dec'+ decCount +'" name="chk_info" value="Array">Array  <input title="Array Size" id="inp_size_dec'+decCount+'" maxlength="4" size="4" disabled></li>');
+
+      $( "#i_dec" + decCount).mousedown(function(){
+        SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+      });
+      
+      $("#chk_dec"+decCount).change(function(){
+    	  var tempid = this.id.substr(-1,1);
+        if ($(this).is(":checked")){
+          $("#inp_size_dec"+tempid).removeAttr("disabled");
+        }else{
+          $("#inp_size_dec"+tempid).attr("disabled", "disabled").val("");
+        }
+      });
+      
+      decCount++;  //id == item0,item1,item2....
+    });
+    
+    $( "#addBinary").bind("click",function(){
+    	$( "#sortable").append('<li id="i_opr' + oprCount + '" class="ui-state-opr">Operation'+ oprCount +'  <input maxlength="10" size="10" id="inp_dest_opr'+oprCount+'"> = <input maxlength="10" size="10" id="inp_left_opr'+oprCount+'">  <select id="s_opr'+ oprCount+'"><option value="add">+</option><option value="sub">-</option><option value="mul">*</option><option value="div">/</option></select>  <input maxlength="10" size="10" id="inp_right_opr'+oprCount+'"></li>');
+    	
+    	$( "#i_opr" + oprCount).mousedown(function(){
+    		SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+    	});
+    	
+    	oprCount++;
+    });
+    
+    $( "#addAss").bind("click",function(){
+    	$( "#sortable").append('<li id="i_ass' + assCount + '" class="ui-state-ass">Assignment'+ assCount +'  <input maxlength="10" size="10" id="inp_left_ass'+assCount+'"> = <input id="inp_right_ass'+assCount+'" maxlength="10" size="10"></li>');
+    	
+    	$( "#i_ass" + assCount).mousedown(function(){
+    		SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+    	});
+    	
+    	assCount++;
+    });
+    
+    $( "#addWhile").bind("click",function(){
+    	$( "#sortable").append('<li id="i_loop' + loopCount + '" class="ui-state-loop">While'+ loopCount +'  <input maxlength="30" size="30" id="inp_loop'+loopCount+'"></li>');
+    	
+    	$( "#i_loop" + loopCount).mousedown(function(){
+    		SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+    	});
+    	
+    	loopCount++;
+    });
+    
+    $( "#addIf").bind("click",function(){
+    	$( "#sortable").append('<li id="i_if' + ifCount + '" class="ui-state-if">If'+ ifCount +'  <input maxlength="30" size="30" id="inp_if'+ifCount+'"></li>');
+    	
+    	$( "#i_if" + ifCount).mousedown(function(){
+    		SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+    	});
+    	
+    	ifCount++;
+    });
+    
+    $( "#addInput").bind("click",function(){
+    	$( "#sortable").append('<li id="i_input' + inputCount + '"  class="ui-state-in">Input'+ inputCount +' <select id="s_input'+ inputCount+'"><option value="char">char</option><option value="int">int</option><option value="float">float</option></select> <input maxlength="30" size="30" id="inp_input'+inputCount+'"></li>');
+    	
+    	$( "#i_input" + inputCount).mousedown(function(){
+    		SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+    	});
+    	
+    	inputCount++;
+    });
+    
+	$( "#addOutput").bind("click",function(){
+		$( "#sortable").append('<li id="i_output' + outputCount + '" class="ui-state-out">Output'+ outputCount +'  <input maxlength="30" size="30" id="inp_output'+outputCount+'"></li>');
+    	
+    	$( "#i_output" + outputCount).mousedown(function(){
+    		SelectSelectableElement($("#sortable"),$(this,"#sortable"));
+    	});
+    	
+    	outputCount++;
+    });
+    
+  });
+  </script>
+</head>
+<body>
+<div id="header">
+    <h1>CONSOLE</h1>
+</div>
+<!-- buttons -->
+<div id="nav">
+    <div class="container">
+        <div class="btn-group-vertical">
+            <button type="button" class="btn btn-primary" draggable="true" id="addDec">Add Dec</button>
+            <button type="button" class="btn btn-info" draggable="true" id="addAss">Add Ass</button>
+	    	<button type="button" class="btn btn-info" draggable="true" id="addWhile">Add while</button>
+	    	<button type="button" class="btn btn-info" draggable="true" id="addIf">Add if</button>
+	    	<button type="button" class="btn btn-info" draggable="true" id="addBinary">Add Operation</button>
+            <button type="button" class="btn btn-info" draggable="true" id="addInput">Add Input</button>
+	    	<button type="button" class="btn btn-info" draggable="true" id="addOutput">Add Output</button>
+            <button type="button" class="btn btn-default" draggable="true" id="clear">Clear</button>
+            <button type="button" class="btn btn-success" draggable="true" id="compile">Compile</button>
+        </div>
+    </div>
+</div>
+<div id="section">
+    int main() {
+    <ul id="sortable">
+    </ul>
+    }
+</div>
+
+<div id="footer">
+</div>
+
+<div class="container">
+    <!-- Modal -->
+    <div class="modal fade" id="compileModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" style="padding:35px 50px;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4><span class="glyphicon glyphicon-print"></span> COMPILE</h4>
+                </div>
+                <div class="modal-body" style="padding:40px 50px;">
+                    <form role="form">
+                        <div class="checkbox">
+                            <label><input type="checkbox" value="" checked>SEE WITH MACHINE CODE</label>
+                        </div>
+                        <button id="compile_btn" type="button" class="btn btn-success">RUN COMPILE</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="container">
+    <!-- Modal -->
+    <div class="modal fade" id="resultModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" style="padding:35px 50px;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4><span class="glyphicon glyphicon-print"></span> RESULT </h4>
+                </div>
+                <div id="result_body" class="modal-body" style="padding:40px 50px;  white-space: pre;"></div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- fixto and modals -->
+<script>
+    $(document).ready(function(){
+        $("#compile").click(function(){
+            $("#compileModal").modal();
+        });
+        $("#compile_btn").click(function(){
+        	var str=[];
+        	$("#sortable li").each(function(){
+        		str.push($(this).attr('id'));
+        	});
+        	
+        });
+    });
+    $(function() {
+        //hljs.initHighlightingOnLoad();
+        $('#nav').fixTo('body');
+    });
+</script>
+</body>
+</html>
